@@ -74,7 +74,7 @@ namespace Varus_God
                             Spells.E.Cast(eprediction.CastPosition);
                         }
 
-                        BEFOREWALK:
+                    BEFOREWALK:
                         if (Spells.E.IsReady() && Config.Item("fleeR").GetValue<bool>())
                         {
                             var rtarget =
@@ -89,7 +89,7 @@ namespace Varus_God
 
                             Spells.R.Cast(rprediction.CastPosition);
                         }
-                        WALK:
+                    WALK:
                         Orbwalking.MoveTo(Game.CursorPos);
                     }
                     break;
@@ -110,19 +110,8 @@ namespace Varus_God
             {
                 if (Spells.Q.IsCharging)
                 {
-                    var damage = Spells.Q.GetSpellDamage(target);
-                    var qprediction = Prediction.GetPrediction(target, Spells.Q.Delay, Spells.Q.Width, Spells.Q.Speed);
-                    var positions = new List<Vector2>
-                    {
-                        (Vector2) qprediction.UnitPosition,
-                        (Vector2) qprediction.CastPosition
-                    }; //not sure if correctly done.. but it works
-                    var count = Spells.Q.GetCollision(Player.Position.To2D(), positions).Count(); //same here
+                    var damage = qDamage(target);
 
-                    if (count >= 6)
-                        damage = damage*0.33f;
-                    else
-                        damage -= count*(damage*0.15f);
                     Orbwalker.SetAttack(false);
                     if (!Spells.Q.IsInRange(target)) return;
                     if (Spells.Q.Range >= Spells.Q.ChargedMaxRange)
@@ -190,19 +179,8 @@ namespace Varus_God
             {
                 if (Spells.Q.IsCharging)
                 {
-                    var damage = Spells.Q.GetSpellDamage(target);
-                    var qprediction = Prediction.GetPrediction(target, Spells.Q.Delay, Spells.Q.Width, Spells.Q.Speed);
-                    var positions = new List<Vector2>
-                    {
-                        (Vector2) qprediction.UnitPosition,
-                        (Vector2) qprediction.CastPosition
-                    }; //not sure if correctly done.. but it works
-                    var count = Spells.Q.GetCollision(Player.Position.To2D(), positions).Count(); //same here
+                    var damage = qDamage(target);
 
-                    if (count >= 6)
-                        damage = damage*0.33f;
-                    else
-                        damage -= count*(damage*0.15f);
                     Orbwalker.SetAttack(false);
                     if (!Spells.Q.IsInRange(target)) return;
                     if (Spells.Q.Range >= Spells.Q.ChargedMaxRange)
@@ -264,20 +242,8 @@ namespace Varus_God
 
                     if (Spells.Q.IsCharging)
                     {
-                        var damage = Spells.Q.GetSpellDamage(target);
-                        var qprediction = Prediction.GetPrediction(target, Spells.Q.Delay, Spells.Q.Width,
-                            Spells.Q.Speed);
-                        var positions = new List<Vector2>
-                        {
-                            (Vector2) qprediction.UnitPosition,
-                            (Vector2) qprediction.CastPosition
-                        }; //not sure if correctly done.. but it works
-                        var count = Spells.Q.GetCollision(Player.Position.To2D(), positions).Count(); //same here
+                        var damage = qDamage(target);
 
-                        if (count >= 6)
-                            damage = damage*0.33f;
-                        else
-                            damage -= count*(damage*0.15f);
                         Orbwalker.SetAttack(false);
                         if (damage >= target.Health && !target.IsInvulnerable)
                             Spells.Q.Cast(target);
@@ -322,9 +288,9 @@ namespace Varus_God
                         buff.Type == BuffType.Polymorph || buff.Type == BuffType.Suppression ||
                         buff.Type == BuffType.Snare)
                     {
-                        var buffEndTime = buff.EndTime - (target.PercentCCReduction*(buff.EndTime - buff.StartTime));
+                        var buffEndTime = buff.EndTime - (target.PercentCCReduction * (buff.EndTime - buff.StartTime));
                         var cctimeleft = buffEndTime - Game.Time;
-                        var speed = target.Position.Distance(Player.Position)/Spells.R.Speed;
+                        var speed = target.Position.Distance(Player.Position) / Spells.R.Speed;
                         if (cctimeleft <= speed)
                         {
                             if (Spells.R.IsReady())
@@ -469,6 +435,34 @@ namespace Varus_God
                 Drawing.DrawCircle(Player.Position, Spells.R.Range, Color.Maroon);
         }
 
+        private static float qDamage(Obj_AI_Hero hero)
+        {
+            float dmg;
+
+            if (Spells.Q.IsReady())
+            {
+                var damage = Spells.Q.GetSpellDamage(hero);
+                var qprediction = Prediction.GetPrediction(hero, Spells.Q.Delay, Spells.Q.Width, Spells.Q.Speed);
+                var positions = new List<Vector2>
+                    {
+                        (Vector2) qprediction.UnitPosition,
+                        (Vector2) qprediction.CastPosition
+                    }; //not sure if correctly done.. but it works
+                var count = Spells.Q.GetCollision(Player.Position.To2D(), positions).Count(); //same here
+
+                if (count >= 6)
+                    damage = damage * 0.33f;
+                else
+                    damage -= count * (damage * 0.15f);
+
+                dmg = damage;
+            }
+            else
+                dmg = 0;
+
+            return dmg;
+        }
+
         private static void InitMenu()
         {
             var orbwalkerMenu = new Menu("Orbwalker", "Orbwalker");
@@ -531,6 +525,10 @@ namespace Varus_God
                 drawingsMenu.AddItem(new MenuItem("drawQ", "Draw Q").SetValue(true));
                 drawingsMenu.AddItem(new MenuItem("drawE", "Draw E").SetValue(true));
                 drawingsMenu.AddItem(new MenuItem("drawR", "Draw R").SetValue(true));
+                var dmgAfterQ = new MenuItem("dmgAfterCombo", "Draw Q damage on target").SetValue(true);
+                Utility.HpBarDamageIndicator.DamageToUnit = qDamage;
+                Utility.HpBarDamageIndicator.Enabled = dmgAfterQ.GetValue<bool>();
+                drawingsMenu.AddItem(dmgAfterQ);
                 Config.AddSubMenu(drawingsMenu);
             }
             var miscMenu = new Menu("Misc", "Misc. settings");
