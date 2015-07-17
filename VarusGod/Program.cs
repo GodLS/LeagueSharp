@@ -29,6 +29,7 @@ namespace Varus_God
             Game.OnUpdate += OnUpdate;
             Drawing.OnDraw += OnDraw;
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
+            //GameObject.OnCreate += UnderTower;
         }
 
         private static void OnUpdate(EventArgs args)
@@ -95,6 +96,27 @@ namespace Varus_God
                     break;
             }
         }
+
+        //private static void UnderTower(GameObject sender, EventArgs args)
+        //{
+        //    // Thanks h3h3
+        //    if (!Spells.R.IsReady()) return;
+
+        //    if (sender.IsValid<Obj_SpellMissile>())
+        //    {
+        //        var missile = (Obj_SpellMissile)sender;
+
+        //        // Ally Turret -> Enemy Hero
+        //        if (missile.SpellCaster.IsValid<Obj_AI_Turret>() && missile.SpellCaster.IsAlly &&
+        //            missile.Target.IsValid<Obj_AI_Hero>() && missile.Target.IsEnemy)
+        //        {
+        //            if (Player.Distance(missile.Target.Position) <= Spells.R.Range && Config.Item("underTower" + missile.Target.Name).GetValue<bool>())
+        //            {
+        //                Spells.R.Cast((Obj_AI_Base) missile.Target);
+        //            }
+        //        }
+        //    }
+        //}
 
         private static void Combo()
         {
@@ -277,23 +299,24 @@ namespace Varus_God
 
         private static void ChainCC()
         {
-            if (!Config.Item("chainCC").GetValue<bool>()) return;
+            if (!Spells.R.IsReady()) return;
+
             foreach (var target in HeroManager.Enemies.Where(t => t.IsValidTarget(Spells.R.Range)))
             {
-                foreach (var buff in target.Buffs)
+                if (Config.Item("chainCC" + target.ChampionName).GetValue<bool>())
                 {
-                    if (buff.Type == BuffType.Charm || buff.Type == BuffType.Fear ||
-                        buff.Type == BuffType.Stun || buff.Type == BuffType.Taunt ||
-                        buff.Type == BuffType.Flee || buff.Type == BuffType.Knockup ||
-                        buff.Type == BuffType.Polymorph || buff.Type == BuffType.Suppression ||
-                        buff.Type == BuffType.Snare)
+                    foreach (var buff in target.Buffs)
                     {
-                        var buffEndTime = buff.EndTime - (target.PercentCCReduction * (buff.EndTime - buff.StartTime));
-                        var cctimeleft = buffEndTime - Game.Time;
-                        var speed = target.Position.Distance(Player.Position) / Spells.R.Speed;
-                        if (cctimeleft <= speed)
+                        if (buff.Type == BuffType.Charm || buff.Type == BuffType.Fear ||
+                            buff.Type == BuffType.Stun || buff.Type == BuffType.Taunt ||
+                            buff.Type == BuffType.Flee || buff.Type == BuffType.Knockup ||
+                            buff.Type == BuffType.Polymorph || buff.Type == BuffType.Suppression ||
+                            buff.Type == BuffType.Snare)
                         {
-                            if (Spells.R.IsReady())
+                            var buffEndTime = buff.EndTime - (target.PercentCCReduction * (buff.EndTime - buff.StartTime));
+                            var cctimeleft = buffEndTime - Game.Time;
+                            var speed = target.Position.Distance(Player.Position) / Spells.R.Speed;
+                            if (cctimeleft <= speed)
                             {
                                 Spells.R.Cast(target);
                             }
@@ -444,10 +467,10 @@ namespace Varus_God
                 var damage = Spells.Q.GetSpellDamage(hero);
                 var qprediction = Prediction.GetPrediction(hero, Spells.Q.Delay, Spells.Q.Width, Spells.Q.Speed);
                 var positions = new List<Vector2>
-                    {
-                        (Vector2) qprediction.UnitPosition,
-                        (Vector2) qprediction.CastPosition
-                    }; //not sure if correctly done.. but it works
+                {
+                    (Vector2) qprediction.UnitPosition,
+                    (Vector2) qprediction.CastPosition
+                }; //not sure if correctly done.. but it works
                 var count = Spells.Q.GetCollision(Player.Position.To2D(), positions).Count(); //same here
 
                 if (count >= 6)
@@ -538,7 +561,14 @@ namespace Varus_God
                 miscMenu.AddItem(new MenuItem("killstealQ", "Killsteal Q").SetValue(true));
                 miscMenu.AddItem(new MenuItem("killstealE", "Killsteal E").SetValue(true));
                 miscMenu.AddItem(new MenuItem("killstealR", "Killsteal R").SetValue(false));
-                miscMenu.AddItem(new MenuItem("chainCC", "Chain CC with R").SetValue(false));
+                foreach (var target in HeroManager.Enemies)
+                {
+                    miscMenu.SubMenu("Chain CC with R")
+                        .AddItem(new MenuItem("chainCC" + target.ChampionName, target.ChampionName).SetValue(true));
+
+                    //miscMenu.SubMenu("R enemy focused by tower")
+                    //.AddItem(new MenuItem("underTower" + target.Name, target.ChampionName).SetValue(true));
+                }
                 Config.AddSubMenu(miscMenu);
             }
             var fleeMEnu = new Menu("Flee", "Flee settings");
