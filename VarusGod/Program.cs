@@ -303,22 +303,26 @@ namespace Varus_God
 
             foreach (var target in HeroManager.Enemies.Where(t => t.IsValidTarget(Spells.R.Range)))
             {
-                if (Config.Item("chainCC" + target.ChampionName).GetValue<bool>())
+                if (target != null)
                 {
-                    foreach (var buff in target.Buffs)
+                    if (Config.Item("chainCC" + target.ChampionName).GetValue<bool>())
                     {
-                        if (buff.Type == BuffType.Charm || buff.Type == BuffType.Fear ||
-                            buff.Type == BuffType.Stun || buff.Type == BuffType.Taunt ||
-                            buff.Type == BuffType.Flee || buff.Type == BuffType.Knockup ||
-                            buff.Type == BuffType.Polymorph || buff.Type == BuffType.Suppression ||
-                            buff.Type == BuffType.Snare)
+                        foreach (var buff in target.Buffs)
                         {
-                            var buffEndTime = buff.EndTime - (target.PercentCCReduction * (buff.EndTime - buff.StartTime));
-                            var cctimeleft = buffEndTime - Game.Time;
-                            var speed = target.Position.Distance(Player.Position) / Spells.R.Speed;
-                            if (cctimeleft <= speed)
+                            if (buff.Type == BuffType.Charm || buff.Type == BuffType.Fear ||
+                                buff.Type == BuffType.Stun || buff.Type == BuffType.Taunt ||
+                                buff.Type == BuffType.Flee || buff.Type == BuffType.Knockup ||
+                                buff.Type == BuffType.Polymorph || buff.Type == BuffType.Suppression ||
+                                buff.Type == BuffType.Snare)
                             {
-                                Spells.R.Cast(target);
+                                var buffEndTime = buff.EndTime -
+                                                  (target.PercentCCReduction*(buff.EndTime - buff.StartTime));
+                                var cctimeleft = buffEndTime - Game.Time;
+                                var speed = target.Position.Distance(Player.Position)/Spells.R.Speed;
+                                if (cctimeleft <= speed)
+                                {
+                                    Spells.R.Cast(target);
+                                }
                             }
                         }
                     }
@@ -445,7 +449,6 @@ namespace Varus_God
                 Drawing.DrawCircle(Player.Position, Spells.Q.ChargedMaxRange, Color.LightCoral);
             else if (Config.Item("drawQ").GetValue<bool>() && !Spells.Q.IsReady())
                 Drawing.DrawCircle(Player.Position, Spells.Q.ChargedMaxRange, Color.Maroon);
-
 
             if (Config.Item("drawE").GetValue<bool>() && Spells.E.IsReady())
                 Drawing.DrawCircle(Player.Position, Spells.E.Range, Color.LightCoral);
