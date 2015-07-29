@@ -308,7 +308,7 @@ namespace EliseGod
                                 }
                                 else if (colliding[0].Type != GameObjectType.obj_AI_Hero &&
                                          colliding[0].Distance(target, true) > 25000 && R.IsReady() && realcdSQ <= 1 &&
-                                         target.Distance(Player.Position) <= Q1.Range + 200)
+                                         target.Distance(Player.Position) <= Q1.Range + 200 && Config.Item("rCombo").GetValue<bool>())
                                 {
                                     var playerPosition = ObjectManager.Player.Position.To2D();
                                     var direction = ObjectManager.Player.Direction.To2D().Perpendicular();
