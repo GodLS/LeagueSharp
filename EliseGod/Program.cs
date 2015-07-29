@@ -12,7 +12,7 @@ namespace EliseGod
     internal class Program
     {
         public static Spell Q, W, E, R, Q1, W1, E1;
-        private static readonly Menu Config = new Menu("Elise God", "Elise.God", true);
+        private static readonly Menu Config = new Menu("Elise God", "Elise.God.", true);
         private static readonly Obj_AI_Hero Player = ObjectManager.Player;
         private static Orbwalking.Orbwalker _orbwalker;
         private static readonly float[] HumanQcd = { 6, 6, 6, 6, 6 };
@@ -50,10 +50,38 @@ namespace EliseGod
             Orbwalking.BeforeAttack += BeforeAttack;
             Obj_AI_Base.OnPlayAnimation += OnPlayAnimation;
             Drawing.OnDraw += Drawing_OnDraw;
+            Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             //GameObject.OnCreate += OnCreateObject;
             //GameObject.OnDelete += OnDeleteObject;
             //Obj_AI_Base.OnAggro += OnAggro;
         }
+
+        private static void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
+        {
+            if (sender == null) return;
+            if (Human())
+            {
+                if (Config.Item("interrupt").GetValue<bool>())
+                {
+                    if (E.IsReady() && sender.IsValidTarget(E.Range))
+                    {
+                        E.Cast(sender);
+                    }
+                }
+            }
+            else
+            {
+                if (Config.Item("switchInterrupt").GetValue<bool>())
+                {
+                    if (realcdE == 0 && sender.IsValidTarget(E.Range) && R.IsReady())
+                    {
+                        R.Cast();
+                        E.Cast(sender);
+                    }
+                }
+            }
+        }
+        
 
         //private static void OnDeleteObject(GameObject sender, EventArgs args)
         //{
@@ -194,13 +222,22 @@ namespace EliseGod
                 if (E.IsReady() && Config.Item("eComboH").GetValue<bool>() &&
                     target.Distance(Player.Position) <= E.Range)
                 {
-                    var collision = E.GetCollision(Player.Position.To2D(), new List<Vector2> { target.Position.To2D() });
+                    var eprediction = E.GetPrediction(target);
+                    switch (eprediction.Hitchance)
+                    {
 
-                    if (collision.Count <= 0)
-                        E.Cast(target);
+                        case HitChance.VeryHigh:
+                        case HitChance.Immobile:
 
-                    else if (collision.Count >= 1 && collision[0].Type == GameObjectType.obj_AI_Hero)
-                        E.Cast(target);
+                            E.Cast(eprediction.CastPosition);
+                            break;
+
+                        case HitChance.Collision:
+                            var colliding = eprediction.CollisionObjects.OrderBy(o => o.Distance(Player, true)).ToList();
+                            if (colliding.Count >= 1 && colliding[0].Type == GameObjectType.obj_AI_Hero)
+                                E.Cast(eprediction.CastPosition);
+                            break;
+                    }
                 }
 
                 if (Q.IsReady() && Config.Item("qComboH").GetValue<bool>() &&
@@ -310,13 +347,22 @@ namespace EliseGod
                 if (E.IsReady() && Config.Item("eHarassH").GetValue<bool>() &&
                     target.Distance(Player.Position) <= E.Range)
                 {
-                    var collision = E.GetCollision(Player.Position.To2D(), new List<Vector2> { target.Position.To2D() });
+                    var eprediction = E.GetPrediction(target);
+                    switch (eprediction.Hitchance)
+                    {
 
-                    if (collision.Count <= 0)
-                        E.Cast(target);
+                        case HitChance.VeryHigh:
+                        case HitChance.Immobile:
 
-                    else if (collision.Count >= 1 && collision[0].Type == GameObjectType.obj_AI_Hero)
-                        E.Cast(target);
+                            E.Cast(eprediction.CastPosition);
+                            break;
+
+                        case HitChance.Collision:
+                            var colliding = eprediction.CollisionObjects.OrderBy(o => o.Distance(Player, true)).ToList();
+                            if (colliding.Count >= 1 && colliding[0].Type == GameObjectType.obj_AI_Hero)
+                                E.Cast(eprediction.CastPosition);
+                            break;
+                    }
                 }
 
                 if (Q.IsReady() && Config.Item("qHarassH").GetValue<bool>() &&
@@ -365,6 +411,7 @@ namespace EliseGod
                             enemy.Health <= Q.GetDamage(enemy))
                         {
                             Q.CastOnUnit(enemy);
+                            return;
                         }
                     }
 
@@ -381,6 +428,16 @@ namespace EliseGod
                             return;
                         }
                     }
+
+                    if (Config.Item("wKSH").GetValue<bool>())
+                    {
+                        if (W.IsReady() && enemy.Distance(Player.Position) <= W.Range &&
+                            enemy.Health <= W.GetDamage(enemy))
+                        {
+                            W.Cast(enemy);
+                            return;
+                        }
+                    }
                 }
                 else if (!Human())
                 {
@@ -390,6 +447,7 @@ namespace EliseGod
                             enemy.Health <= Q1.GetDamage(enemy, 1))
                         {
                             Q1.CastOnUnit(enemy);
+                            return;
                         }
                     }
 
@@ -402,6 +460,20 @@ namespace EliseGod
                             {
                                 R.Cast();
                                 Q.CastOnUnit(enemy);
+                            }
+                            return;
+                        }
+                    }
+
+                    if (Config.Item("wKSH").GetValue<bool>() && Config.Item("switchKS").GetValue<bool>())
+                    {
+                        if (realcdW == 0 && enemy.Distance(Player.Position) <= W.Range &&
+                            enemy.Health <= W.GetDamage(enemy))
+                        {
+                            if (R.IsReady())
+                            {
+                                R.Cast();
+                                W.Cast(enemy);
                             }
                             return;
                         }
@@ -634,6 +706,9 @@ namespace EliseGod
             {
                 killstealMenu.AddItem(new MenuItem("qKSH", "Use Human Q").SetValue(true));
                 killstealMenu.AddItem(new MenuItem("qKS", "Use Spider Q").SetValue(true));
+                killstealMenu.AddItem(new MenuItem("wKSH", "Use Human Q").SetValue(true));
+                killstealMenu.AddItem(new MenuItem("wKS", "Use Spider Q").SetValue(true));
+
                 killstealMenu.AddItem(new MenuItem("switchKS", "Switch forms to KS").SetValue(true));
                 Config.AddSubMenu(killstealMenu);
             }
@@ -646,6 +721,9 @@ namespace EliseGod
                         KeyBindType.Press)));
                 miscMenu.AddItem(new MenuItem("hGC", "Human anti-GC").SetValue(true));
                 miscMenu.AddItem(new MenuItem("fGC", "Spider follow-GC").SetValue(true));
+                miscMenu.AddItem(new MenuItem("interrupt", "Interrupt").SetValue(true));
+                miscMenu.AddItem(new MenuItem("switchInterrupt", "Switch form to interrupt").SetValue(true));
+
                 Config.AddSubMenu(miscMenu);
             }
 
