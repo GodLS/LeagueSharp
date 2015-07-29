@@ -15,18 +15,15 @@ namespace EliseGod
         private static readonly Menu Config = new Menu("Elise God", "Elise.God", true);
         private static readonly Obj_AI_Hero Player = ObjectManager.Player;
         private static Orbwalking.Orbwalker _orbwalker;
-
-        private static readonly float[] HumanQcd = {6, 6, 6, 6, 6};
-        private static readonly float[] HumanWcd = {12, 12, 12, 12, 12};
-        private static readonly float[] HumanEcd = {14, 13, 12, 11, 10};
-        private static readonly float[] SpiderQcd = {6, 6, 6, 6, 6};
-        private static readonly float[] SpiderWcd = {12, 12, 12, 12, 12};
-        private static readonly float[] SpiderEcd = {26, 23, 20, 17, 14};
-
+        private static readonly float[] HumanQcd = { 6, 6, 6, 6, 6 };
+        private static readonly float[] HumanWcd = { 12, 12, 12, 12, 12 };
+        private static readonly float[] HumanEcd = { 14, 13, 12, 11, 10 };
+        private static readonly float[] SpiderQcd = { 6, 6, 6, 6, 6 };
+        private static readonly float[] SpiderWcd = { 12, 12, 12, 12, 12 };
+        private static readonly float[] SpiderEcd = { 26, 23, 20, 17, 14 };
         private static float _qCd, _wCd, _eCd;
         private static float _q1Cd, _w1Cd, _e1Cd;
         private static float realcdQ, realcdW, realcdE, realcdSQ, realcdSW, realcdSE;
-
         //private static Obj_AI_Minion spider;
 
         private static void Main(string[] args)
@@ -56,10 +53,7 @@ namespace EliseGod
             //GameObject.OnCreate += OnCreateObject;
             //GameObject.OnDelete += OnDeleteObject;
             //Obj_AI_Base.OnAggro += OnAggro;
-
         }
-
-
 
         //private static void OnDeleteObject(GameObject sender, EventArgs args)
         //{
@@ -93,7 +87,6 @@ namespace EliseGod
         //        }
         //    }
         //}
-
 
 
         private static void OnUpdate(EventArgs args)
@@ -171,13 +164,13 @@ namespace EliseGod
 
                                     for (var step = 0f; step < 360; step += stepSize)
                                     {
-                                        var currentAngel = step*(float) Math.PI/180;
+                                        var currentAngel = step * (float)Math.PI / 180;
                                         var currentCheckPoint = playerPosition +
-                                                                distance*direction.Rotated(currentAngel);
+                                                                distance * direction.Rotated(currentAngel);
 
                                         var collision =
-                                            Collision.GetCollision(new List<Vector3> {currentCheckPoint.To3D()},
-                                                new PredictionInput {Delay = 0.25f, Radius = 200, Speed = 1000});
+                                            Collision.GetCollision(new List<Vector3> { currentCheckPoint.To3D() },
+                                                new PredictionInput { Delay = 0.25f, Radius = 200, Speed = 1000 });
 
                                         if (collision.Count == 0)
                                         {
@@ -201,7 +194,7 @@ namespace EliseGod
                 if (E.IsReady() && Config.Item("eComboH").GetValue<bool>() &&
                     target.Distance(Player.Position) <= E.Range)
                 {
-                    var collision = E.GetCollision(Player.Position.To2D(), new List<Vector2> {target.Position.To2D()});
+                    var collision = E.GetCollision(Player.Position.To2D(), new List<Vector2> { target.Position.To2D() });
 
                     if (collision.Count <= 0)
                         E.Cast(target);
@@ -215,7 +208,7 @@ namespace EliseGod
                     Q.CastOnUnit(target);
 
                 if (Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady())
+                    R.IsReady() && target.Distance(Player.Position) <= Q1.Range)
                     if (realcdSQ == 0 || realcdSW == 0 || realcdSE == 0)
                         R.Cast();
             }
@@ -234,7 +227,9 @@ namespace EliseGod
                     E1.CastOnUnit(target);
 
                 if (Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady())
+                    R.IsReady() && !Player.HasBuff("EliseSpiderW") ||
+                    Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
+                    R.IsReady() && target.Distance(Player.Position) >= Player.AttackRange + 100)
                     if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
                         R.Cast();
             }
@@ -329,7 +324,7 @@ namespace EliseGod
                     Q.CastOnUnit(target);
 
                 if (Config.Item("rHarass").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady())
+                    R.IsReady() && target.Distance(Player.Position) <= Q1.Range)
                     if (realcdSQ == 0 || realcdSW == 0 || realcdSE == 0)
                         R.Cast();
             }
@@ -348,7 +343,9 @@ namespace EliseGod
                     E1.CastOnUnit(target);
 
                 if (Config.Item("rHarass").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady())
+                    R.IsReady() && !Player.HasBuff("EliseSpiderW") ||
+                    Config.Item("rHarass").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
+                    R.IsReady() && target.Distance(Player.Position) >= Player.AttackRange + 100)
                     if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
                         R.Cast();
             }
@@ -356,7 +353,9 @@ namespace EliseGod
 
         private static void Killsteal()
         {
-            foreach (var enemy in HeroManager.Enemies.Where(e => e.IsValidTarget() && e.Distance(Player.Position) <= E.Range))
+            foreach (
+                var enemy in HeroManager.Enemies.Where(e => e.IsValidTarget() && e.Distance(Player.Position) <= E.Range)
+                )
             {
                 if (Human())
                 {
@@ -411,8 +410,6 @@ namespace EliseGod
             }
         }
 
-
-
         private static void OnPlayAnimation(Obj_AI_Base sender, GameObjectPlayAnimationEventArgs args)
         {
             if (sender.IsMe)
@@ -461,12 +458,14 @@ namespace EliseGod
             var aaDelay = Player.AttackDelay * 100 + Game.Ping / 2f;
 
             if (Config.Item("wCombo").GetValue<bool>())
-                if (target.Type == GameObjectType.obj_AI_Hero && _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                if (target.Type == GameObjectType.obj_AI_Hero &&
+                    _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     Utility.DelayAction.Add((int)aaDelay, () => W1.Cast());
 
-            else if (Config.Item("wHarass").GetValue<bool>())
-                if (target.Type == GameObjectType.obj_AI_Hero && _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-                    Utility.DelayAction.Add((int)aaDelay, () => W1.Cast());
+                else if (Config.Item("wHarass").GetValue<bool>())
+                    if (target.Type == GameObjectType.obj_AI_Hero &&
+                        _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                        Utility.DelayAction.Add((int)aaDelay, () => W1.Cast());
         }
 
         private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -578,6 +577,7 @@ namespace EliseGod
                     Drawing.DrawText(wts[0] + 40, wts[1] - 30, Color.Orange, "E: " + realcdSE.ToString("0.0"));
             }
         }
+
         private static void InitializeSpells()
         {
             Q = new Spell(SpellSlot.Q, 625f);
@@ -627,7 +627,7 @@ namespace EliseGod
                 harassMenu.AddItem(new MenuItem("rComboHarass", "Use R").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harassMana", "Mana manager (%)").SetValue(new Slider(40, 1)));
 
-                Config.AddSubMenu(comboMenu);
+                Config.AddSubMenu(harassMenu);
             }
 
             var killstealMenu = new Menu("Killsteal", "Killsteal settings");
