@@ -17,7 +17,7 @@ namespace Varus_God
             Q.SetSkillshot(Q.Instance.SData.SpellCastTime, Q.Instance.SData.LineWidth, Q.Instance.SData.MissileSpeed,
                 false, SkillshotType.SkillshotLine);
             Q.SetCharged("VarusQ", "VarusQ", 925, 1625, 1.0f);
-            Q.MinHitChance = HitChance.VeryHigh;
+            //Q.MinHitChance = HitChance.VeryHigh;
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 925);
             E.SetSkillshot(.50f, 250, 1400, false, SkillshotType.SkillshotCircle);
