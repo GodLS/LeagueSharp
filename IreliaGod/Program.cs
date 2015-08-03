@@ -459,11 +459,11 @@ namespace IreliaGod
                 switch ((int) item.Id)
                 {
                     case 3057: //Sheen
-                        if (Utils.TickCount - lastsheenproc > 1500)
+                        if (Utils.TickCount - lastsheenproc > 1500 + Game.Ping)
                             result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.BaseAttackDamage);
                         break;
                     case 3078: //Triforce
-                        if (Utils.TickCount - lastsheenproc > 1500)
+                        if (Utils.TickCount - lastsheenproc > 1500 + Game.Ping)
                             result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.TotalAttackDamage*1.5);
                         break;
                 }
