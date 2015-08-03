@@ -65,11 +65,11 @@ namespace IreliaGod
 
             if (Spells.Q.IsReady())
             {
-                result += QDamage(hero) + ExtraWDamage() + SheenDamage(hero);
+                result += QDamage(hero) + ExtraWDamage(hero) + SheenDamage(hero);
             }
             if (Spells.W.IsReady() || Player.HasBuff("ireliahitenstylecharged"))
             {
-                result += (ExtraWDamage() +
+                result += (ExtraWDamage(hero) +
                            Player.CalcDamage(hero, Damage.DamageType.Physical, Player.TotalAttackDamage))*3; // 3 autos
             }
             if (Spells.E.IsReady())
@@ -100,7 +100,7 @@ namespace IreliaGod
 
             foreach (
                 var buff in
-                    Player.Buffs.Where(b => b.Name == "ireliatranscendentbladesspell" && b.IsValid && b.IsActive))
+                    Player.Buffs.Where(b => b.Name == "ireliatranscendentbladesspell" && b.IsValid))
             {
                 rcount = buff.Count;
             }
@@ -198,7 +198,7 @@ namespace IreliaGod
                     .Where(
                         m =>
                             m.Distance(Player) <= Spells.Q.Range &&
-                            m.Health <= QDamage(m) + ExtraWDamage() + SheenDamage(m) && m.IsValidTarget())
+                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) && m.IsValidTarget())
                     .OrderBy(m => m.Distance(gctarget.Position) <= Spells.Q.Range + 350)
                     .FirstOrDefault();
 
@@ -353,7 +353,7 @@ namespace IreliaGod
                 if (enemy == null) return;
 
                 if (IreliaMenu.Config.Item("misc.ks.q").GetValue<bool>() && Spells.Q.IsReady() &&
-                    QDamage(enemy) + ExtraWDamage() + SheenDamage(enemy) >= enemy.Health &&
+                    QDamage(enemy) + ExtraWDamage(enemy) + SheenDamage(enemy) >= enemy.Health &&
                     enemy.Distance(Player.Position) <= Spells.Q.Range)
                 {
                     Spells.Q.CastOnUnit(enemy);
@@ -387,7 +387,7 @@ namespace IreliaGod
                     .FirstOrDefault(
                         m =>
                             m.Distance(Player) <= Spells.Q.Range &&
-                            m.Health <= QDamage(m) + ExtraWDamage() + SheenDamage(m) - 15 &&
+                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 15 &&
                             m.IsValidTarget());
 
 
@@ -452,28 +452,29 @@ namespace IreliaGod
             }
         }
 
-        private static double SheenDamage(Obj_AI_Base target) // Thanks princer007
+        private static double SheenDamage(Obj_AI_Base target) // Thanks princer007 for the basic idea
         {
             var result = 0d;
             foreach (var item in Player.InventoryItems)
                 switch ((int) item.Id)
                 {
                     case 3057: //Sheen
-                        if (Utils.TickCount - lastsheenproc > 1500 + Game.Ping)
+                        if (Utils.TickCount - lastsheenproc >= 1500 + Game.Ping)
                             result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.BaseAttackDamage);
                         break;
                     case 3078: //Triforce
-                        if (Utils.TickCount - lastsheenproc > 1500 + Game.Ping)
+                        if (Utils.TickCount - lastsheenproc >= 1500 + Game.Ping)
                             result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.TotalAttackDamage*1.5);
                         break;
                 }
             return result;
         }
 
-        private static double ExtraWDamage()
+        private static double ExtraWDamage(Obj_AI_Base target)
         {
             var extra = 0d;
-            if (Player.HasBuff("ireliahitenstylecharged"))
+            var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
+            if (buff != null && buff.EndTime < (1000*Player.Distance(target)/Spells.Q.Speed + Spells.Q.Delay))
                 extra += new double[] {15, 30, 45, 60, 75}[Spells.W.Level - 1];
 
             return extra;
