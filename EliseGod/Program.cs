@@ -132,21 +132,60 @@ namespace EliseGod
                     Harass();
                     break;
                 case Orbwalking.OrbwalkingMode.LaneClear:
-                    //LaneClear();
-                    //JungleClear();
+                    LaneClear();
+                    JungleClear();
                     break;
             }
         }
 
-        //private static void JungleClear()
-        //{
+        private static void JungleClear()
+        {
+            if (Human() && Player.ManaPercent <= Config.Item("jungleclear.mana").GetValue<Slider>().Value) return;
+            var minions = MinionManager.GetMinions(Player.ServerPosition, W.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth).FirstOrDefault();
+            if (minions == null) return;
 
-        //}
+            if (Human()) {
+                if (Q.IsReady() && Config.Item("jungleclear.q").GetValue<bool>() && minions.Distance(Player.Position) <= Q.Range)
+                    Q.CastOnUnit(minions);
 
-        //private static void LaneClear()
-        //{
+                if (W.IsReady() && Config.Item("jungleclear.w").GetValue<bool>())
+                    W.Cast(minions);
 
-        //}
+                if (Config.Item("jungleclear.r").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && R.IsReady())
+                    if (realcdSW == 0 || realcdSQ == 0)
+                        R.Cast();
+            }
+            else {
+                if (Q.IsReady() && Config.Item("jungleclear.q.spider").GetValue<bool>() && minions.Distance(Player.Position) <= Q1.Range)
+                    Q1.CastOnUnit(minions);
+
+                if (Config.Item("jungleclear.r").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && R.IsReady())
+                    if (realcdQ == 0 || realcdW == 0)
+                        R.Cast();
+            }
+
+        }
+
+        private static void LaneClear()
+        {
+            if (Human() && Player.ManaPercent <= Config.Item("laneclear.mana").GetValue<Slider>().Value) return;
+            var minions = MinionManager.GetMinions(Player.ServerPosition, W.Range).FirstOrDefault();
+            if (minions == null) return;
+
+            if (Human())
+            {
+                if (Q.IsReady() && Config.Item("laneclear.q").GetValue<bool>() && minions.Distance(Player.Position) <= Q.Range)
+                    Q.CastOnUnit(minions);
+
+                if (W.IsReady() && Config.Item("laneclear.w").GetValue<bool>())
+                    W.Cast(minions);
+            }
+            else
+            {
+                if (Q.IsReady() && Config.Item("laneclear.q.spider").GetValue<bool>() && minions.Distance(Player.Position) <= Q1.Range)
+                    Q1.CastOnUnit(minions);
+            }
+        }
 
         private static void Combo()
         {
@@ -274,7 +313,7 @@ namespace EliseGod
 
         private static void Harass()
         {
-            if (Player.ManaPercent <= Config.Item("harassMana").GetValue<Slider>().Value) return;
+            if (Human() && Player.ManaPercent <= Config.Item("harassMana").GetValue<Slider>().Value) return;
             var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
             if (target == null) return;
             if (!target.IsValidTarget()) return;
@@ -526,6 +565,7 @@ namespace EliseGod
 
         private static void OnAttack(AttackableUnit unit, AttackableUnit target)
         {
+            if (realcdSW > 0) return;
             if (!unit.IsMe) return;
             var aaDelay = Player.AttackDelay * 100 + Game.Ping / 2f;
 
@@ -534,10 +574,21 @@ namespace EliseGod
                     _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
                     Utility.DelayAction.Add((int)aaDelay, () => W1.Cast());
 
-                else if (Config.Item("wHarass").GetValue<bool>())
-                    if (target.Type == GameObjectType.obj_AI_Hero &&
-                        _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-                        Utility.DelayAction.Add((int)aaDelay, () => W1.Cast());
+            if (Config.Item("wHarass").GetValue<bool>())
+                if (target.Type == GameObjectType.obj_AI_Hero &&
+                    _orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                    Utility.DelayAction.Add((int)aaDelay, () => W1.Cast());
+
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
+            {
+                if (Config.Item("jungleclear.w.spider").GetValue<bool>()
+                    && target.Type == GameObjectType.NeutralMinionCamp)
+                    Utility.DelayAction.Add((int) aaDelay, () => W1.Cast());
+
+                if (Config.Item("laneclear.w.spider").GetValue<bool>()
+                         && target.Type == GameObjectType.obj_AI_Minion)
+                        Utility.DelayAction.Add((int) aaDelay, () => W1.Cast());
+            }
         }
 
         private static void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
@@ -700,6 +751,29 @@ namespace EliseGod
                 harassMenu.AddItem(new MenuItem("harassMana", "Mana manager (%)").SetValue(new Slider(40, 1)));
 
                 Config.AddSubMenu(harassMenu);
+            }
+
+            var laneClearMenu = new Menu("LaneClear", "LaneClear settings");
+            {
+                laneClearMenu.AddItem(new MenuItem("laneclear.q", "Use Human Q").SetValue(true));
+                laneClearMenu.AddItem(new MenuItem("laneclear.q.spider", "Use Spider Q").SetValue(true));
+                laneClearMenu.AddItem(new MenuItem("laneclear.w.", "Use Human W").SetValue(true));
+                laneClearMenu.AddItem(new MenuItem("laneclear.w.spider", "Use Spider W").SetValue(true));
+                laneClearMenu.AddItem(new MenuItem("laneclear.mana", "Mana manager (%)").SetValue(new Slider(40, 1)));
+
+                Config.AddSubMenu(laneClearMenu);
+            }
+
+            var jungleClearMenu = new Menu("JungleClear", "JungleClear settings");
+            {
+                jungleClearMenu.AddItem(new MenuItem("jungleclear.q", "Use Human Q").SetValue(true));
+                jungleClearMenu.AddItem(new MenuItem("jungleclear.q.spider", "Use Spider Q").SetValue(true));
+                jungleClearMenu.AddItem(new MenuItem("jungleclear.w.", "Use Human W").SetValue(true));
+                jungleClearMenu.AddItem(new MenuItem("jungleclear.w.spider", "Use Spider W").SetValue(true));
+                jungleClearMenu.AddItem(new MenuItem("jungleclear.r", "Use R").SetValue(true));
+                jungleClearMenu.AddItem(new MenuItem("jungleclear.mana", "Mana manager (%)").SetValue(new Slider(40, 1)));
+
+                Config.AddSubMenu(jungleClearMenu);
             }
 
             var killstealMenu = new Menu("Killsteal", "Killsteal settings");
