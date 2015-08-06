@@ -198,7 +198,7 @@ namespace IreliaGod
                     .Where(
                         m =>
                             m.Distance(Player) <= Spells.Q.Range &&
-                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) && m.IsValidTarget())
+                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 30 && m.IsValidTarget())
                     .OrderBy(m => m.Distance(gctarget.Position) <= Spells.Q.Range + 350)
                     .FirstOrDefault();
 
@@ -387,7 +387,7 @@ namespace IreliaGod
                     .FirstOrDefault(
                         m =>
                             m.Distance(Player) <= Spells.Q.Range &&
-                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 15 &&
+                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 30 &&
                             m.IsValidTarget());
 
 
