@@ -41,6 +41,22 @@ namespace IreliaGod
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
         }
 
+        private static bool Selected()
+        {
+            if (!IreliaMenu.Config.Item("force.target").GetValue<bool>()) return false;
+
+            var target = TargetSelector.GetSelectedTarget();
+            float range = IreliaMenu.Config.Item("force.target.range").GetValue<Slider>().Value;
+            if (target == null || target.IsDead || target.IsZombie) return false;
+
+            return !(Player.Distance(target.Position) > range);
+        }
+
+        private static Obj_AI_Base GetTarget(float range)
+        {
+            return Selected() ? TargetSelector.GetSelectedTarget() : TargetSelector.GetTarget(range, TargetSelector.DamageType.Physical);
+        }
+
         private static void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
         {
             if (sender == null) return;
@@ -95,7 +111,7 @@ namespace IreliaGod
             if (rcount == 0 && Spells.R.IsReady())
                 rcount = 4;
 
-            if (rcount == 1 && !Spells.R.IsReady())
+            if (!Spells.R.IsReady() & rcount != 0)
                 rcount = 0;
 
             foreach (
@@ -188,8 +204,8 @@ namespace IreliaGod
 
         private static void Combo()
         {
-            var gctarget = TargetSelector.GetTarget(Spells.Q.Range*2.5f, TargetSelector.DamageType.Physical);
-            var target = TargetSelector.GetTarget(Spells.Q.Range, TargetSelector.DamageType.Physical);
+            var gctarget = GetTarget(Spells.Q.Range*2.5f);
+            var target = GetTarget(Spells.Q.Range);
             if (gctarget == null) return;
 
             var qminion =
@@ -270,9 +286,10 @@ namespace IreliaGod
 
         private static void Harass()
         {
+            var gctarget = TargetSelector.GetTarget(Spells.Q.Range * 2.5f, TargetSelector.DamageType.Physical);
+            var target = TargetSelector.GetTarget(Spells.Q.Range, TargetSelector.DamageType.Physical);
+            if (Player.ManaPercent <= IreliaMenu.Config.Item("harass.mana").GetValue<Slider>().Value && Player.HasBuff("ireliatranscendentbladesspell") && rcount >= 1) goto castr;
             if (Player.ManaPercent <= IreliaMenu.Config.Item("harass.mana").GetValue<Slider>().Value) return;
-            var gctarget = TargetSelector.GetTarget(Spells.Q.Range*2.5f, TargetSelector.DamageType.Physical);
-            var target = TargetSelector.GetTarget(Spells.Q.Range*2, TargetSelector.DamageType.Physical);
             if (gctarget == null) return;
 
             var qminion =
@@ -321,6 +338,7 @@ namespace IreliaGod
                 }
             }
 
+            castr:
             if (Spells.R.IsReady() && IreliaMenu.Config.Item("harass.r").GetValue<bool>())
             {
                 if (IreliaMenu.Config.Item("harass.r.weave").GetValue<bool>())

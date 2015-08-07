@@ -19,6 +19,8 @@ namespace IreliaGod
             {
                 TargetSelector.AddToMenu(targetSelectorMenu);
                 Config.AddSubMenu(targetSelectorMenu);
+                Config.AddItem(new MenuItem("force.target", "Force focus selected target").SetValue(true));
+                Config.AddItem(new MenuItem("force.target.range", "if within:").SetValue(new Slider(1500, 0, 2500)));
             }
 
             var comboMenu = new Menu("Combo", "Combo settings");
