@@ -387,7 +387,7 @@ namespace IreliaGod
                     .FirstOrDefault(
                         m =>
                             m.Distance(Player) <= Spells.Q.Range &&
-                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 30 &&
+                            m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 10 &&
                             m.IsValidTarget());
 
 
@@ -464,7 +464,7 @@ namespace IreliaGod
                         break;
                     case 3078: //Triforce
                         if (Utils.TickCount - lastsheenproc >= 1500 + Game.Ping)
-                            result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.TotalAttackDamage*1.5);
+                            result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.BaseAttackDamage * 2);
                         break;
                 }
             return result;
