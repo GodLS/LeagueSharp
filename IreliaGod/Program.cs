@@ -261,7 +261,7 @@ namespace IreliaGod
                 }
             }
 
-            if (Spells.R.IsReady() && IreliaMenu.Config.Item("combo.r").GetValue<bool>())
+            if (Spells.R.IsReady() && IreliaMenu.Config.Item("combo.r").GetValue<bool>() || IreliaMenu.Config.Item("combo.r.selfactivated").GetValue<bool>() && rcount <= 3)
             {
                 if (IreliaMenu.Config.Item("combo.r.weave").GetValue<bool>())
                 {
@@ -477,11 +477,11 @@ namespace IreliaGod
                 switch ((int) item.Id)
                 {
                     case 3057: //Sheen
-                        if (Utils.TickCount - lastsheenproc >= 1500 + Game.Ping)
+                        if (Utils.TickCount - lastsheenproc >= 1750 + Game.Ping)
                             result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.BaseAttackDamage);
                         break;
                     case 3078: //Triforce
-                        if (Utils.TickCount - lastsheenproc >= 1500 + Game.Ping)
+                        if (Utils.TickCount - lastsheenproc >= 1750 + Game.Ping)
                             result += Player.CalcDamage(target, Damage.DamageType.Physical, Player.BaseAttackDamage * 2);
                         break;
                 }

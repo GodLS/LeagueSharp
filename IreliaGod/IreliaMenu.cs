@@ -33,6 +33,7 @@ namespace IreliaGod
                 comboMenu.AddItem(new MenuItem("combo.e.logic", "   advanced logic").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.r", "Use R").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.r.weave", "   sheen synergy").SetValue(true));
+                comboMenu.AddItem(new MenuItem("combo.r.selfactivated", "   only if self activated").SetValue(false));
                 Config.AddSubMenu(comboMenu);
             }
             var harassMenu = new Menu("Harass", "Harass settings");
