@@ -34,6 +34,8 @@ namespace IreliaGod
                 comboMenu.AddItem(new MenuItem("combo.r", "Use R").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.r.weave", "   sheen synergy").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.r.selfactivated", "   only if self activated").SetValue(false));
+                comboMenu.AddItem(new MenuItem("combo.items", "Use items").SetValue(true));
+                comboMenu.AddItem(new MenuItem("combo.ignite", "Use ignite if combo killable").SetValue(true));
                 Config.AddSubMenu(comboMenu);
             }
             var harassMenu = new Menu("Harass", "Harass settings");

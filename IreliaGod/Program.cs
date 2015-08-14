@@ -39,6 +39,14 @@ namespace IreliaGod
             Obj_AI_Base.OnBuffRemove += OnBuffRemove; // Sheen buff workaround
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            Obj_AI_Base.OnProcessSpellCast += (sender, eventArgs) =>
+            {
+                if (sender.IsMe && eventArgs.SData.Name == Spells.E.Instance.SData.Name)
+                    Utility.DelayAction.Add(260, Orbwalking.ResetAutoAttackTimer);
+
+                if (sender.IsMe && eventArgs.SData.Name == Spells.Q.Instance.SData.Name)
+                    Utility.DelayAction.Add(260, Orbwalking.ResetAutoAttackTimer);
+            };
         }
 
         private static bool Selected()
@@ -261,19 +269,15 @@ namespace IreliaGod
                 }
             }
 
-            if (Spells.R.IsReady() && IreliaMenu.Config.Item("combo.r").GetValue<bool>() || IreliaMenu.Config.Item("combo.r.selfactivated").GetValue<bool>() && rcount <= 3)
+            if (Spells.R.IsReady() && IreliaMenu.Config.Item("combo.r").GetValue<bool>() && !IreliaMenu.Config.Item("combo.r.selfactivated").GetValue<bool>())
             {
                 if (IreliaMenu.Config.Item("combo.r.weave").GetValue<bool>())
                 {
                     if (target != null && !Player.HasBuff("sheen") &&
-                        target.Distance(Player.Position) <= Orbwalking.GetRealAutoAttackRange(target) + 100 &&
+                        target.Distance(Player.Position) <= Spells.R.Range &&
                         Utils.TickCount - lastsheenproc >= 1500)
                     {
                         Spells.R.Cast(target, false, true);
-                    }
-                    else if (gctarget.Distance(Player.Position) <= Spells.R.Range)
-                    {
-                        Spells.R.Cast(gctarget, false, true);
                     }
                 }
                 else
@@ -282,15 +286,57 @@ namespace IreliaGod
                         // Set to Q range because we are already going to combo them at this point most likely, no stupid long range R initiations
                 }
             }
+            else if (Spells.R.IsReady() && IreliaMenu.Config.Item("combo.r").GetValue<bool>() && IreliaMenu.Config.Item("combo.r.selfactivated").GetValue<bool>() && rcount <= 3)
+            {
+                if (IreliaMenu.Config.Item("combo.r.weave").GetValue<bool>())
+                {
+                    if (target != null && !Player.HasBuff("sheen") &&
+                        target.Distance(Player.Position) <= Spells.R.Range &&
+                        Utils.TickCount - lastsheenproc >= 1500)
+                    {
+                        Spells.R.Cast(target, false, true);
+                    }
+                }
+                else
+                {
+                    Spells.R.Cast(target, false, true);
+                    // Set to Q range because we are already going to combo them at this point most likely, no stupid long range R initiations
+                }
+            }
+
+            // items below here maybe
+            if (IreliaMenu.Config.Item("combo.items").GetValue<bool>() && target != null)
+            {
+                if (Player.Distance(target.ServerPosition) <= 600 && ComboDamage((Obj_AI_Hero) target) >= target.Health &&
+                    IreliaMenu.Config.Item("combo.ignite").GetValue<bool>())
+                {
+                    Player.Spellbook.CastSpell(Spells.Ignite, target);
+                }
+
+                if (Spells.Youmuu.IsReady() && target.IsValidTarget(Spells.Q.Range))
+                {
+                    Spells.Youmuu.Cast();
+                }
+
+                if (Player.Distance(target.ServerPosition) <= 450 && Spells.Cutlass.IsReady())
+                {
+                    Spells.Cutlass.Cast(target);
+                }
+
+                if (Player.Distance(target.ServerPosition) <= 450 && Spells.Blade.IsReady())
+                {
+                    Spells.Blade.Cast(target);
+                }
+            }
         }
 
         private static void Harass()
         {
             var gctarget = TargetSelector.GetTarget(Spells.Q.Range * 2.5f, TargetSelector.DamageType.Physical);
             var target = TargetSelector.GetTarget(Spells.Q.Range, TargetSelector.DamageType.Physical);
+            if (gctarget == null) return;
             if (Player.ManaPercent <= IreliaMenu.Config.Item("harass.mana").GetValue<Slider>().Value && Player.HasBuff("ireliatranscendentbladesspell") && rcount >= 1) goto castr;
             if (Player.ManaPercent <= IreliaMenu.Config.Item("harass.mana").GetValue<Slider>().Value) return;
-            if (gctarget == null) return;
 
             var qminion =
                 MinionManager
@@ -343,15 +389,14 @@ namespace IreliaGod
             {
                 if (IreliaMenu.Config.Item("harass.r.weave").GetValue<bool>())
                 {
-                    if (target != null && !Player.HasBuff("sheen") &&
-                        target.Distance(Player.Position) <= Orbwalking.GetRealAutoAttackRange(target) + 100 &&
-                        Utils.TickCount - lastsheenproc >= 1500)
+                    if (IreliaMenu.Config.Item("harass.r.weave").GetValue<bool>())
                     {
-                        Spells.R.Cast(target, false, true);
-                    }
-                    else if (gctarget.Distance(Player.Position) <= Spells.R.Range)
-                    {
-                        Spells.R.Cast(gctarget, false, true);
+                        if (target != null && !Player.HasBuff("sheen") &&
+                            target.Distance(Player.Position) <= Spells.R.Range &&
+                            Utils.TickCount - lastsheenproc >= 1500)
+                        {
+                            Spells.R.Cast(target, false, true);
+                        }
                     }
                 }
                 else
@@ -369,6 +414,26 @@ namespace IreliaGod
                     HeroManager.Enemies.Where(e => e.Distance(Player.Position) <= Spells.R.Range && e.IsValidTarget()))
             {
                 if (enemy == null) return;
+
+                if (Spells.Q.IsReady() && IreliaMenu.Config.Item("misc.ks.q").GetValue<bool>() &&
+                    Spells.E.IsReady() && IreliaMenu.Config.Item("misc.ks.e").GetValue<bool>() &&
+                    Spells.E.GetDamage(enemy) + QDamage(enemy) + ExtraWDamage(enemy) + SheenDamage(enemy) >=
+                            enemy.Health)
+                {
+                    if (enemy.Distance(Player.Position) <= Spells.Q.Range && enemy.Distance(Player.Position) > Spells.E.Range)
+                    {
+                        Spells.Q.Cast(enemy);
+                        var enemy1 = enemy;
+                        Utility.DelayAction.Add((int)(1000 * Player.Distance(enemy) / Spells.Q.Speed + Spells.Q.Delay), () => Spells.E.Cast(enemy1));
+                    }
+                    else if (enemy.Distance(Player.Position) <= Spells.Q.Range)
+                    {
+                        Spells.E.Cast(enemy);
+                        var enemy1 = enemy;
+                        Utility.DelayAction.Add(250, () => Spells.Q.Cast(enemy1));
+                    }
+
+                }
 
                 if (IreliaMenu.Config.Item("misc.ks.q").GetValue<bool>() && Spells.Q.IsReady() &&
                     QDamage(enemy) + ExtraWDamage(enemy) + SheenDamage(enemy) >= enemy.Health &&
@@ -389,8 +454,8 @@ namespace IreliaGod
                     Spells.R.GetDamage(enemy)*rcount >= enemy.Health)
                 {
                     Spells.R.Cast(enemy, false, true);
-                    return;
                 }
+
             }
         }
 
@@ -490,6 +555,8 @@ namespace IreliaGod
 
         private static double ExtraWDamage(Obj_AI_Base target)
         {
+            // tried some stuff with if buff == null but the damage will be enough then cast W and it worked.. but meh, idk will look at later
+
             var extra = 0d;
             var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
             if (buff != null && buff.EndTime < (1000*Player.Distance(target)/Spells.Q.Speed + Spells.Q.Delay))
@@ -506,7 +573,7 @@ namespace IreliaGod
                     Damage.DamageType.Physical,
                     new double[] {20, 50, 80, 110, 140}[Spells.Q.Level - 1]
                     + Player.TotalAttackDamage)
-                //- 25) // Safety net, for some reason the damage is never exact ): why?
+                //- 25) Safety net, for some reason the damage is never exact ): why?
                 : 0d;
         }
     }
