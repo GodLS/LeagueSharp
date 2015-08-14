@@ -304,7 +304,6 @@ namespace IreliaGod
                 }
             }
 
-            // items below here maybe
             if (IreliaMenu.Config.Item("combo.items").GetValue<bool>() && target != null)
             {
                 if (Player.Distance(target.ServerPosition) <= 600 && ComboDamage((Obj_AI_Hero) target) >= target.Health &&
