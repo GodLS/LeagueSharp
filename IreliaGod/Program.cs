@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using LeagueSharp;
 using LeagueSharp.Common;
 
@@ -46,6 +47,17 @@ namespace IreliaGod
 
                 if (sender.IsMe && eventArgs.SData.Name == Spells.Q.Instance.SData.Name)
                     Utility.DelayAction.Add(260, Orbwalking.ResetAutoAttackTimer);
+            };
+            Orbwalking.AfterAttack += (unit, target) =>
+            {
+                if (IreliaMenu.Config.Item("combo.items").GetValue<bool>() && unit.IsMe && target != null && Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                {
+                    if (Spells.Tiamat.IsReady())
+                        Spells.Tiamat.Cast();
+
+                    if (Spells.Hydra.IsReady())
+                        Spells.Hydra.Cast();
+                }
             };
         }
 
