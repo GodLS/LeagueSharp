@@ -358,7 +358,7 @@ namespace IreliaGod
                             m.IsValidTarget())
                     .MinOrDefault(m => m.Distance(target) <= Spells.Q.Range);
 
-            if (Spells.Q.IsReady() && target.Distance(Player.Position) >= Orbwalking.GetRealAutoAttackRange(target))
+            if (Spells.Q.IsReady())
             {
                 if (IreliaMenu.Config.Item("harass.q.gc").GetValue<bool>() && qminion != null &&
                     qminion.Distance(target) <= Player.Distance(target))
