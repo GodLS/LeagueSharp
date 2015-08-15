@@ -261,7 +261,7 @@ namespace IreliaGod
                 }
 
                 if (IreliaMenu.Config.Item("combo.q").GetValue<bool>() &&
-                    IreliaMenu.Config.Item("combo.q.lastsecond").GetValue<bool>())
+                    IreliaMenu.Config.Item("combo.q.lastsecond").GetValue<bool>() && target != null)
                 {
                     var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
                     if (buff != null && buff.EndTime - Game.Time <= (Player.Distance(target) / Spells.Q.Speed + Spells.Q.Delay + .500 + Player.AttackCastDelay) && !Player.IsWindingUp)
