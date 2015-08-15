@@ -259,6 +259,16 @@ namespace IreliaGod
 
                     Spells.Q.CastOnUnit(target);
                 }
+
+                if (IreliaMenu.Config.Item("combo.q").GetValue<bool>() &&
+                    IreliaMenu.Config.Item("combo.q.lastsecond").GetValue<bool>())
+                {
+                    var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
+                    if (buff != null && buff.EndTime - Game.Time <= (Player.Distance(target) / Spells.Q.Speed + Spells.Q.Delay + .500 + Player.AttackCastDelay) && !Player.IsWindingUp)
+                    {
+                        Spells.Q.Cast(target);
+                    }
+                }
             }
 
             if (Spells.E.IsReady() && IreliaMenu.Config.Item("combo.e").GetValue<bool>() && target != null)
@@ -372,6 +382,16 @@ namespace IreliaGod
                     IreliaMenu.Config.Item("harass.q.minrange").GetValue<Slider>().Value)
                 {
                     Spells.Q.CastOnUnit(target);
+                }
+
+                if (IreliaMenu.Config.Item("harass.q").GetValue<bool>() &&
+                    IreliaMenu.Config.Item("harass.q.lastsecond").GetValue<bool>())
+                {
+                    var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
+                    if (buff != null && buff.EndTime - Game.Time <= (Player.Distance(target) / Spells.Q.Speed + Spells.Q.Delay + .500 + Player.AttackCastDelay) && !Player.IsWindingUp)
+                    {
+                        Spells.Q.Cast(target);
+                    }
                 }
             }
 

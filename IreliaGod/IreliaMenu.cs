@@ -26,7 +26,8 @@ namespace IreliaGod
             var comboMenu = new Menu("Combo", "Combo settings");
             {
                 comboMenu.AddItem(new MenuItem("combo.q", "Use Q on enemy").SetValue(true));
-                comboMenu.AddItem(new MenuItem("combo.q.minrange", "Minimum range to Q enemy").SetValue(new Slider(350, 0, 650)));
+                comboMenu.AddItem(new MenuItem("combo.q.minrange", "   Minimum range to Q enemy").SetValue(new Slider(450, 0, 650)));
+                comboMenu.AddItem(new MenuItem("combo.q.lastsecond", "   Use Q to target always before W buff ends (range doesnt matter)").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.q.gc", "Use Q to gapclose (killable minions)").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.w", "Use W").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.e", "Use E").SetValue(true));
@@ -41,7 +42,8 @@ namespace IreliaGod
             var harassMenu = new Menu("Harass", "Harass settings");
             {
                 harassMenu.AddItem(new MenuItem("harass.q", "Use Q on enemy").SetValue(true));
-                harassMenu.AddItem(new MenuItem("harass.q.minrange", "Minimum range to Q enemy").SetValue(new Slider(350, 0, 650)));
+                harassMenu.AddItem(new MenuItem("harass.q.minrange", "   Minimum range to Q enemy").SetValue(new Slider(450, 0, 650)));
+                harassMenu.AddItem(new MenuItem("harass.q.lastsecond", "   Use Q to target always before W buff ends (range doesnt matter)").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.q.gc", "Use Q to gapclose (killable minions)").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.w", "Use W").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.e", "Use E").SetValue(true));
