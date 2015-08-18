@@ -27,6 +27,7 @@ namespace IreliaGod
             {
                 comboMenu.AddItem(new MenuItem("combo.q", "Use Q on enemy").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.q.minrange", "   Minimum range to Q enemy").SetValue(new Slider(450, 0, 650)));
+                comboMenu.AddItem(new MenuItem("combo.q.undertower", "   Q enemy under tower only if their health % under").SetValue(new Slider(40)));
                 comboMenu.AddItem(new MenuItem("combo.q.lastsecond", "   Use Q to target always before W buff ends (range doesnt matter)").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.q.gc", "Use Q to gapclose (killable minions)").SetValue(true));
                 comboMenu.AddItem(new MenuItem("combo.w", "Use W").SetValue(true));
@@ -43,6 +44,7 @@ namespace IreliaGod
             {
                 harassMenu.AddItem(new MenuItem("harass.q", "Use Q on enemy").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.q.minrange", "   Minimum range to Q enemy").SetValue(new Slider(450, 0, 650)));
+                harassMenu.AddItem(new MenuItem("harass.q.undertower", "   Q enemy under tower only if their health % under").SetValue(new Slider(40)));
                 harassMenu.AddItem(new MenuItem("harass.q.lastsecond", "   Use Q to target always before W buff ends (range doesnt matter)").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.q.gc", "Use Q to gapclose (killable minions)").SetValue(true));
                 harassMenu.AddItem(new MenuItem("harass.w", "Use W").SetValue(true));
@@ -79,7 +81,7 @@ namespace IreliaGod
                 miscMenu.AddItem(new MenuItem("misc.ks.r", "Killsteal R").SetValue(true));
                 miscMenu.AddItem(new MenuItem("misc.age", "Anti-Gapclose E").SetValue(true));
                 miscMenu.AddItem(new MenuItem("misc.interrupt", "Stun interruptable spells").SetValue(true));
-
+                miscMenu.AddItem(new MenuItem("misc.stunundertower", "Stun enemy with tower aggro").SetValue(true));
                 Config.AddSubMenu(miscMenu);
             }
             var fleeMEnu = new Menu("Flee", "Flee settings");

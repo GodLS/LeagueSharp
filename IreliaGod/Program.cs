@@ -40,6 +40,7 @@ namespace IreliaGod
             Obj_AI_Base.OnBuffRemove += OnBuffRemove; // Sheen buff workaround
             AntiGapcloser.OnEnemyGapcloser += OnEnemyGapcloser;
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
+            Obj_AI_Base.OnAggro += Obj_AI_Hero_OnAggro;
             Obj_AI_Base.OnProcessSpellCast += (sender, eventArgs) =>
             {
                 if (sender.IsMe && eventArgs.SData.Name == Spells.E.Instance.SData.Name)
@@ -59,6 +60,42 @@ namespace IreliaGod
                         Spells.Hydra.Cast();
                 }
             };
+        }
+
+        static void Obj_AI_Hero_OnAggro(Obj_AI_Base sender, GameObjectAggroEventArgs args)
+        {
+            if (!IreliaMenu.Config.Item("misc.stunundertower").GetValue<bool>()) return;
+            if (!Spells.E.IsReady()) return;
+            if (!sender.Name.Contains("Turret")) return;
+
+            foreach (
+                var enemy in
+                    HeroManager.Enemies.Where(
+                        enemy => enemy.NetworkId == args.NetworkId && Player.HealthPercent <= enemy.HealthPercent))
+            {
+                if (Player.Distance(enemy) <= Spells.E.Range)
+                    Spells.E.CastOnUnit(enemy);
+
+                else if (Player.Distance(enemy) <= Spells.Q.Range && Spells.Q.IsReady())
+                {
+                    var qminion =  MinionManager
+                        .GetMinions(Spells.Q.Range + 350, MinionTypes.All, MinionTeam.NotAlly)
+                        .Where(
+                            m =>
+                                m.Distance(Player) <= Spells.Q.Range &&
+                                m.Health <= QDamage(m) + ExtraWDamage(m) + SheenDamage(m) - 30 && m.IsValidTarget())
+                        .OrderBy(m => m.Distance(enemy.Position) <= Spells.Q.Range + 350)
+                        .FirstOrDefault();
+
+                    if (qminion != null && qminion.Distance(enemy) <= Spells.E.Range)
+                    {
+                        var qtraveltime = Player.Distance(qminion)/Spells.Q.Speed + Spells.Q.Delay;
+                        var enemy1 = enemy;
+                        Spells.Q.CastOnUnit(qminion);
+                        Utility.DelayAction.Add((int) qtraveltime, () => Spells.E.CastOnUnit(enemy1));
+                    }
+                }
+            }
         }
 
         private static bool Selected()
@@ -140,6 +177,16 @@ namespace IreliaGod
             {
                 rcount = buff.Count;
             }
+        }
+
+        private static bool UnderTheirTower(Obj_AI_Base target)
+        {
+            var tower =
+                ObjectManager
+                    .Get<Obj_AI_Turret>()
+                    .FirstOrDefault(turret => turret != null && turret.Distance(target) <= 775 && turret.IsValid && turret.Health > 0 && !turret.IsAlly);
+
+            return tower != null;
         }
 
         private static void OnUpdate(EventArgs args)
@@ -254,6 +301,10 @@ namespace IreliaGod
                     target.Distance(Player.Position) >=
                     IreliaMenu.Config.Item("combo.q.minrange").GetValue<Slider>().Value)
                 {
+                    if (UnderTheirTower(target))
+                        if (target.HealthPercent >=
+                            IreliaMenu.Config.Item("combo.q.undertower").GetValue<Slider>().Value) return;
+
                     if (IreliaMenu.Config.Item("combo.w").GetValue<bool>())
                         Spells.W.Cast();
 
@@ -266,6 +317,10 @@ namespace IreliaGod
                     var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
                     if (buff != null && buff.EndTime - Game.Time <= (Player.Distance(target) / Spells.Q.Speed + Spells.Q.Delay + .500 + Player.AttackCastDelay) && !Player.IsWindingUp)
                     {
+                        if (UnderTheirTower(target))
+                            if (target.HealthPercent >=
+                                IreliaMenu.Config.Item("combo.q.undertower").GetValue<Slider>().Value) return;
+
                         Spells.Q.Cast(target);
                     }
                 }
@@ -381,15 +436,23 @@ namespace IreliaGod
                     target.Distance(Player.Position) >=
                     IreliaMenu.Config.Item("harass.q.minrange").GetValue<Slider>().Value)
                 {
+                    if (UnderTheirTower(target))
+                        if (target.HealthPercent >=
+                            IreliaMenu.Config.Item("harass.q.undertower").GetValue<Slider>().Value) return;
+
                     Spells.Q.CastOnUnit(target);
                 }
 
                 if (IreliaMenu.Config.Item("harass.q").GetValue<bool>() &&
-                    IreliaMenu.Config.Item("harass.q.lastsecond").GetValue<bool>())
+                    IreliaMenu.Config.Item("harass.q.lastsecond").GetValue<bool>() && target != null)
                 {
                     var buff = Player.Buffs.FirstOrDefault(b => b.Name == "ireliahitenstylecharged" && b.IsValid);
                     if (buff != null && buff.EndTime - Game.Time <= (Player.Distance(target) / Spells.Q.Speed + Spells.Q.Delay + .500 + Player.AttackCastDelay) && !Player.IsWindingUp)
                     {
+                        if (UnderTheirTower(target))
+                            if (target.HealthPercent >=
+                                IreliaMenu.Config.Item("harass.q.undertower").GetValue<Slider>().Value) return;
+
                         Spells.Q.Cast(target);
                     }
                 }
