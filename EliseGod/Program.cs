@@ -53,7 +53,7 @@ namespace EliseGod
             Interrupter2.OnInterruptableTarget += OnInterruptableTarget;
             //GameObject.OnCreate += OnCreateObject;
             //GameObject.OnDelete += OnDeleteObject;
-            //Obj_AI_Base.OnAggro += OnAggro;
+            Obj_AI_Base.OnAggro += OnAggro;
         }
 
         private static void OnInterruptableTarget(Obj_AI_Hero sender, Interrupter2.InterruptableTargetEventArgs args)
@@ -138,32 +138,68 @@ namespace EliseGod
             }
         }
 
+        static void OnAggro(Obj_AI_Base sender, GameObjectAggroEventArgs args)
+        {
+            if (!Config.Item("misc.stunundertower").GetValue<bool>()) return;
+            if (realcdE > 0) return;
+            if (!sender.Name.Contains("Turret")) return;
+
+            foreach (
+                var enemy in
+                    HeroManager.Enemies.Where(
+                        enemy => enemy.NetworkId == args.NetworkId && enemy.Distance(Player.Position) <= E.Range))
+            {
+            stunbitches:
+                if (Human() && E.IsReady())
+                    E.Cast(enemy);
+
+                else if (!Human())
+                {
+                    if (R.IsReady())
+                        R.Cast();
+
+                    goto stunbitches;
+                }
+            }
+        }
+
         private static void JungleClear()
         {
-            if (Human() && Player.ManaPercent <= Config.Item("jungleclear.mana").GetValue<Slider>().Value) return;
-            var minions = MinionManager.GetMinions(Player.ServerPosition, W.Range, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth).FirstOrDefault();
-            if (minions == null) return;
+            var jungleMinions = MinionManager.GetMinions(Q.Range, MinionTypes.All, MinionTeam.Neutral,
+                MinionOrderTypes.MaxHealth);
 
-            if (Human()) {
-                if (Q.IsReady() && Config.Item("jungleclear.q").GetValue<bool>() && minions.Distance(Player.Position) <= Q.Range)
-                    Q.CastOnUnit(minions);
+            foreach (var minion in jungleMinions)
+            {
+                if (Human())
+                {
+                    if (Q.IsReady())
+                        Q.CastOnUnit(minion);
 
-                if (W.IsReady() && Config.Item("jungleclear.w").GetValue<bool>())
-                    W.Cast(minions);
+                    if (W.IsReady())
+                    {
+                        if (W.GetPrediction(minion).CollisionObjects.Count >= 1)
+                            W.Cast(minion);
 
-                if (Config.Item("jungleclear.r").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && R.IsReady())
-                    if (realcdSW == 0 || realcdSQ == 0)
+                        else
+                            W.Cast(minion);
+                    }
+
+                    if (!Q.IsReady() && !W.IsReady() && R.IsReady())
+                    {
                         R.Cast();
-            }
-            else {
-                if (Q.IsReady() && Config.Item("jungleclear.q.spider").GetValue<bool>() && minions.Distance(Player.Position) <= Q1.Range)
-                    Q1.CastOnUnit(minions);
+                    }
+                }
+                else
+                {
+                    if (Q1.IsReady())
+                        Q1.CastOnUnit(minion);
 
-                if (Config.Item("jungleclear.r").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && R.IsReady())
-                    if (realcdQ == 0 || realcdW == 0)
-                        R.Cast();
+                    if (realcdSQ > 1 && realcdSW > 1 && !Player.HasBuff("EliseSpiderW") && R.IsReady())
+                        if (realcdQ < 1 || realcdW < 1)
+                            R.Cast();
+                }
             }
-
+   
         }
 
         private static void LaneClear()
@@ -302,12 +338,10 @@ namespace EliseGod
                     target.Distance(Player.Position) >= Config.Item("eMin").GetValue<Slider>().Value)
                     E1.CastOnUnit(target);
 
-                if (Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady() && !Player.HasBuff("EliseSpiderW") ||
-                    Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady() && target.Distance(Player.Position) >= Player.AttackRange + 100)
-                    if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
-                        R.Cast();
+                if (Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() && R.IsReady())
+                    if (!Player.HasBuff("EliseSpiderW") || target.Distance(Player.Position) >= Player.AttackRange + 100)
+                        if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
+                            R.Cast();
             }
         }
 
@@ -427,12 +461,10 @@ namespace EliseGod
                     target.Distance(Player.Position) >= Config.Item("eMinHarass").GetValue<Slider>().Value)
                     E1.CastOnUnit(target);
 
-                if (Config.Item("rHarass").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady() && !Player.HasBuff("EliseSpiderW") ||
-                    Config.Item("rHarass").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() &&
-                    R.IsReady() && target.Distance(Player.Position) >= Player.AttackRange + 100)
-                    if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
-                        R.Cast();
+                if (Config.Item("rHarass").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() && R.IsReady())
+                    if (!Player.HasBuff("EliseSpiderW") || target.Distance(Player.Position) >= Player.AttackRange + 100)
+                        if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
+                            R.Cast();
             }
         }
 
@@ -587,7 +619,7 @@ namespace EliseGod
 
                 if (Config.Item("laneclear.w.spider").GetValue<bool>()
                          && target.Type == GameObjectType.obj_AI_Minion)
-                        Utility.DelayAction.Add((int) aaDelay, () => W1.Cast());
+                         Utility.DelayAction.Add((int) aaDelay, () => W1.Cast());
             }
         }
 
@@ -597,7 +629,7 @@ namespace EliseGod
             {
                 GetCDs(args);
                 if (args.SData.Name == "EliseHumanW")
-                    Orbwalking.ResetAutoAttackTimer();
+                    Utility.DelayAction.Add(100, Orbwalking.ResetAutoAttackTimer);
             }
         }
 
@@ -782,7 +814,6 @@ namespace EliseGod
                 killstealMenu.AddItem(new MenuItem("qKS", "Use Spider Q").SetValue(true));
                 killstealMenu.AddItem(new MenuItem("wKSH", "Use Human Q").SetValue(true));
                 killstealMenu.AddItem(new MenuItem("wKS", "Use Spider Q").SetValue(true));
-
                 killstealMenu.AddItem(new MenuItem("switchKS", "Switch forms to KS").SetValue(true));
                 Config.AddSubMenu(killstealMenu);
             }
@@ -797,7 +828,7 @@ namespace EliseGod
                 miscMenu.AddItem(new MenuItem("fGC", "Spider follow-GC").SetValue(true));
                 miscMenu.AddItem(new MenuItem("interrupt", "Interrupt").SetValue(true));
                 miscMenu.AddItem(new MenuItem("switchInterrupt", "Switch form to interrupt").SetValue(true));
-
+                miscMenu.AddItem(new MenuItem("misc.stunundertower", "Stun enemy with tower aggro").SetValue(true));
                 Config.AddSubMenu(miscMenu);
             }
 
