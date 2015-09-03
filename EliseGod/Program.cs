@@ -629,7 +629,7 @@ namespace EliseGod
             {
                 GetCDs(args);
                 if (args.SData.Name == "EliseHumanW")
-                    Utility.DelayAction.Add(100, Orbwalking.ResetAutoAttackTimer);
+                    Utility.DelayAction.Add(250, Orbwalking.ResetAutoAttackTimer);
             }
         }
 
