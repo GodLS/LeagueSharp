@@ -330,7 +330,6 @@ namespace EliseGod
                     target.Distance(Player.Position) <= Q1.Range)
                 {
                     Q1.CastOnUnit(target);
-                    Utility.DelayAction.Add(100, Orbwalking.ResetAutoAttackTimer);
                 }
 
                 if (E1.IsReady() && Config.Item("eCombo").GetValue<bool>() &&
@@ -339,13 +338,13 @@ namespace EliseGod
                     E1.CastOnUnit(target);
 
                 if (Config.Item("rCombo").GetValue<bool>() && !Q.IsReady() && !W.IsReady() && !E.IsReady() && R.IsReady())
-                    if (!Player.HasBuff("EliseSpiderW") || target.Distance(Player.Position) >= Player.AttackRange + 100)
-                        if (realcdQ == 0 || realcdW == 0 || realcdE == 0)
+                    if (!Player.HasBuff("EliseSpiderW") || target.Distance(Player.Position) >= Orbwalking.GetRealAutoAttackRange(target) + 100)
+                        if (realcdQ <= 1 || realcdW <= 1 || realcdE <= 1)
                             R.Cast();
             }
         }
 
-        private static void Harass()
+        private static void Harass()    
         {
             if (Human() && Player.ManaPercent <= Config.Item("harassMana").GetValue<Slider>().Value) return;
             var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
@@ -453,7 +452,6 @@ namespace EliseGod
                     target.Distance(Player.Position) <= Q1.Range)
                 {
                     Q1.CastOnUnit(target);
-                    Utility.DelayAction.Add(100, Orbwalking.ResetAutoAttackTimer);
                 }
 
                 if (E1.IsReady() && Config.Item("eHarass").GetValue<bool>() &&
@@ -476,6 +474,18 @@ namespace EliseGod
             {
                 if (Human())
                 {
+                    if (Config.Item("qKSH").GetValue<bool>() && Config.Item("wKSH").GetValue<bool>() && Q.IsReady()
+                        && W.IsReady())
+                    {
+                        if (enemy.Distance(Player.Position) <= Q.Range
+                            && enemy.Health <= Q.GetDamage(enemy) + W.GetDamage(enemy))
+                        {
+                            W.Cast(enemy);
+                            Q.CastOnUnit(enemy);
+                            return;
+                        }
+                    }
+
                     if (Config.Item("qKSH").GetValue<bool>())
                     {
                         if (Q.IsReady() && enemy.Distance(Player.Position) <= Q.Range &&
@@ -512,6 +522,20 @@ namespace EliseGod
                 }
                 else if (!Human())
                 {
+
+                    if (Config.Item("qKSH").GetValue<bool>() && Config.Item("wKSH").GetValue<bool>() && realcdW == 0
+                        && realcdQ == 0)
+                    {
+                        if (enemy.Distance(Player.Position) <= Q.Range
+                            && enemy.Health <= Q.GetDamage(enemy) + W.GetDamage(enemy))
+                        {
+                            R.Cast();
+                            W.Cast(enemy);
+                            Q.CastOnUnit(enemy);
+                            return;
+                        }
+                    }
+
                     if (Config.Item("qKS").GetValue<bool>())
                     {
                         if (Q1.IsReady() && enemy.Distance(Player.Position) <= Q1.Range &&
@@ -628,8 +652,6 @@ namespace EliseGod
             if (sender.IsMe)
             {
                 GetCDs(args);
-                if (args.SData.Name == "EliseHumanW")
-                    Utility.DelayAction.Add(250, Orbwalking.ResetAutoAttackTimer);
             }
         }
 
@@ -789,7 +811,7 @@ namespace EliseGod
             {
                 laneClearMenu.AddItem(new MenuItem("laneclear.q", "Use Human Q").SetValue(true));
                 laneClearMenu.AddItem(new MenuItem("laneclear.q.spider", "Use Spider Q").SetValue(true));
-                laneClearMenu.AddItem(new MenuItem("laneclear.w.", "Use Human W").SetValue(true));
+                laneClearMenu.AddItem(new MenuItem("laneclear.w", "Use Human W").SetValue(true));
                 laneClearMenu.AddItem(new MenuItem("laneclear.w.spider", "Use Spider W").SetValue(true));
                 laneClearMenu.AddItem(new MenuItem("laneclear.mana", "Mana manager (%)").SetValue(new Slider(40, 1)));
 
