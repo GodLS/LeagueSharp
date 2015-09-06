@@ -14,7 +14,7 @@ namespace EliseGod
         public static Spell Q, W, E, R, Q1, W1, E1;
         private static readonly Menu Config = new Menu("Elise God", "Elise.God.", true);
         private static readonly Obj_AI_Hero Player = ObjectManager.Player;
-        private static EliseGod.Orbwalking.Orbwalker _orbwalker;
+        private static Orbwalking.Orbwalker _orbwalker;
         private static readonly float[] HumanQcd = { 6, 6, 6, 6, 6 };
         private static readonly float[] HumanWcd = { 12, 12, 12, 12, 12 };
         private static readonly float[] HumanEcd = { 14, 13, 12, 11, 10 };
@@ -773,7 +773,7 @@ namespace EliseGod
         private static void InitMenu()
         {
             var orbwalkerMenu = new Menu("Orbwalker", "Orbwalker");
-            _orbwalker = new EliseGod.Orbwalking.Orbwalker(orbwalkerMenu);
+            _orbwalker = new Orbwalking.Orbwalker(orbwalkerMenu);
             Config.AddSubMenu(orbwalkerMenu);
 
             var targetSelectorMenu = new Menu("Target Selector", "Target Selector");
