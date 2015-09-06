@@ -14,7 +14,7 @@ namespace EliseGod
         public static Spell Q, W, E, R, Q1, W1, E1;
         private static readonly Menu Config = new Menu("Elise God", "Elise.God.", true);
         private static readonly Obj_AI_Hero Player = ObjectManager.Player;
-        private static Orbwalking.Orbwalker _orbwalker;
+        private static EliseGod.Orbwalking.Orbwalker _orbwalker;
         private static readonly float[] HumanQcd = { 6, 6, 6, 6, 6 };
         private static readonly float[] HumanWcd = { 12, 12, 12, 12, 12 };
         private static readonly float[] HumanEcd = { 14, 13, 12, 11, 10 };
@@ -622,8 +622,9 @@ namespace EliseGod
         private static void OnAttack(AttackableUnit unit, AttackableUnit target)
         {
             if (realcdSW > 0) return;
-            if (!unit.IsMe) return;
-            var aaDelay = Player.AttackDelay * 100 + Game.Ping / 2f;
+            if (!unit.IsMe || unit.Name.Contains("elisespiderling")) return;
+
+            var aaDelay = Player.AttackDelay * 150 + Game.Ping / 2f;
 
             if (Config.Item("wCombo").GetValue<bool>())
                 if (target.Type == GameObjectType.obj_AI_Hero &&
@@ -772,7 +773,7 @@ namespace EliseGod
         private static void InitMenu()
         {
             var orbwalkerMenu = new Menu("Orbwalker", "Orbwalker");
-            _orbwalker = new Orbwalking.Orbwalker(orbwalkerMenu);
+            _orbwalker = new EliseGod.Orbwalking.Orbwalker(orbwalkerMenu);
             Config.AddSubMenu(orbwalkerMenu);
 
             var targetSelectorMenu = new Menu("Target Selector", "Target Selector");
