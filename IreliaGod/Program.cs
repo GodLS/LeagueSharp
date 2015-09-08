@@ -252,10 +252,10 @@ namespace IreliaGod
                                 MinionManager
                                     .GetMinions(Spells.Q.Range, MinionTypes.All, MinionTeam.NotAlly)
                                     .Where(
-                                        m =>
-                                            m.Distance(Player) <= Spells.Q.Range &&
-                                            m.Distance(target) > Player.Distance(target) && m.IsValidTarget())
-                                    .MaxOrDefault(m => m.Distance(target) <= Spells.Q.Range);
+                                        m => 
+                                            m.IsValidTarget(Spells.Q.Range) &&
+                                            m.Distance(target) > Player.Distance(target))
+                                    .MaxOrDefault(m => m.Distance(target));
 
                             if (qminion != null)
                                 Spells.Q.CastOnUnit(qminion);
