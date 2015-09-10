@@ -624,7 +624,7 @@ namespace EliseGod
             if (realcdSW > 0) return;
             if (!unit.IsMe || unit.Name.Contains("elisespiderling")) return;
 
-            var aaDelay = Player.AttackDelay * 150 + Game.Ping / 2f;
+            var aaDelay = Player.AttackDelay * 200 + Game.Ping / 2f;
 
             if (Config.Item("wCombo").GetValue<bool>())
                 if (target.Type == GameObjectType.obj_AI_Hero &&
@@ -835,8 +835,7 @@ namespace EliseGod
             {
                 killstealMenu.AddItem(new MenuItem("qKSH", "Use Human Q").SetValue(true));
                 killstealMenu.AddItem(new MenuItem("qKS", "Use Spider Q").SetValue(true));
-                killstealMenu.AddItem(new MenuItem("wKSH", "Use Human Q").SetValue(true));
-                killstealMenu.AddItem(new MenuItem("wKS", "Use Spider Q").SetValue(true));
+                killstealMenu.AddItem(new MenuItem("wKSH", "Use Human W").SetValue(true));
                 killstealMenu.AddItem(new MenuItem("switchKS", "Switch forms to KS").SetValue(true));
                 Config.AddSubMenu(killstealMenu);
             }
