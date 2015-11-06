@@ -119,6 +119,8 @@ namespace ADCPackage.Plugins
             // also need a check to jump with W if target is killable by E already and its on them, and or if R is ready ---- everything works when all in seperate foreach's..
             if (R.IsReady())
             {
+                if (Player.ManaPercent < Menu.Config.Item("killsteal.r.mana").GetValue<Slider>().Value) return;
+
                 /* E+R ks */
                 if (Menu.Config.Item("ks.er").GetValue<bool>())
                 {
@@ -148,6 +150,7 @@ namespace ADCPackage.Plugins
 
             if (W.IsReady() && Menu.Config.Item("ks.w").IsActive())
             {
+                if (Player.ManaPercent < Menu.Config.Item("killsteal.w.mana").GetValue<Slider>().Value) return;
                 if (Menu.Config.Item("ks.w.setting1").GetValue<bool>() && Player.Mana < W.ManaCost*2) return;
                 if (Menu.Config.Item("ks.w.setting2").GetValue<bool>() &&
                     Player.CountAlliesInRange(1000) < Player.CountEnemiesInRange(1500) - 1) return;
@@ -456,6 +459,8 @@ namespace ADCPackage.Plugins
 
             if (E.IsReady() && E.IsInRange(target) && Menu.Config.Item(target.ChampionName + "e").GetValue<bool>())
             {
+                if (Player.ManaPercent < Menu.Config.Item("combo.e.mana").GetValue<Slider>().Value) return;
+
                 E.CastOnUnit(target);
             }
 
@@ -464,6 +469,8 @@ namespace ADCPackage.Plugins
                 if (Menu.Config.Item("r.selfpeel").GetValue<Slider>().Value != 0 &&
                     Player.HealthPercent <= Menu.Config.Item("r.selfpeel").GetValue<Slider>().Value)
                 {
+                    if (Player.ManaPercent < Menu.Config.Item("combo.r.mana").GetValue<Slider>().Value) return;
+
                     var peel =
                         HeroManager.Enemies.Where(e => R.CanCast(e))
                             .OrderBy(enemy => enemy.Distance(Player))
@@ -478,6 +485,7 @@ namespace ADCPackage.Plugins
 
         public static void LaneClear()
         {
+            if (!Menu.Config.Item("e.tower").IsActive()) return;
             if (Menu.Config.Item("e.tower.mana").GetValue<Slider>().Value > Player.ManaPercent) return;
             var tower = (Obj_AI_Base) ObjectManager.Get<Obj_AI_Turret>().FirstOrDefault(E.CanCast);
             if (tower == null) return;
@@ -596,6 +604,9 @@ namespace ADCPackage.Plugins
                 .SetFontStyle(FontStyle.Regular, SharpDX.Color.Yellow);
             comboMenu.AddItem(new MenuItem("r.selfpeel", "Self peel with R when health < X%").SetValue(new Slider(35)))
                 .SetTooltip("Set to 0 to disable", SharpDX.Color.Yellow);
+            comboMenu.AddSubMenu(new LeagueSharp.Common.Menu("Mana manager (%)", "combo.manamanager"));
+            comboMenu.SubMenu("combo.manamanager").AddItem(new MenuItem("combo.e.mana", "Don't E below X mana:").SetValue(new Slider(15)));
+            comboMenu.SubMenu("combo.manamanager").AddItem(new MenuItem("combo.r.mana", "Don't R below X mana:").SetValue(new Slider(10)));
 
             // r agc, interrupt, + e ks, ks, gapclose
 
@@ -728,6 +739,9 @@ namespace ADCPackage.Plugins
                 .SetValue(new StringList(new[] {"None", "Mouse", "Previous location"}, 1));
             extrasMenu.AddItem(new MenuItem("ks.er", "KS with R + E damage")).SetValue(true);
             extrasMenu.AddItem(new MenuItem("ks.r", "KS with R")).SetValue(true);
+            extrasMenu.AddSubMenu(new LeagueSharp.Common.Menu("Mana manager (%)", "killsteal.manamanager"));
+            extrasMenu.SubMenu("killsteal.manamanager").AddItem(new MenuItem("killsteal.w.mana", "Don't W below X mana:").SetValue(new Slider(0)));
+            extrasMenu.SubMenu("killsteal.manamanager").AddItem(new MenuItem("killsteal.r.mana", "Don't R below X mana:").SetValue(new Slider(0)));
 
 
             //
@@ -738,6 +752,9 @@ namespace ADCPackage.Plugins
             var drawingsMenu =
                 Menu.Config.SubMenu("adcpackage.tristana")
                     .AddSubMenu(new LeagueSharp.Common.Menu("Drawings Menu", "drawings"));
+            {
+                drawingsMenu.Color = SharpDX.Color.Aquamarine;
+            }
             drawingsMenu.AddItem(new MenuItem("draw.explosion", "Draw E explosion radius"))
                 .SetTooltip("On champs and towers only.")
                 .SetValue(true);
