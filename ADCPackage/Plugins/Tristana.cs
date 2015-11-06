@@ -1,12 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Net.Mime;
 using LeagueSharp;
 using LeagueSharp.Common;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Xsl;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -417,7 +414,6 @@ namespace ADCPackage.Plugins
                 }
             }
 
-
             if (Menu.Config.Item("e.force.target").GetValue<bool>() &&
                 Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.Combo ||
                 Menu.Config.Item("e.force.target.harass").GetValue<bool>() &&
@@ -430,6 +426,19 @@ namespace ADCPackage.Plugins
                 }
                 TargetSelector.SetTarget(TargetSelector.GetTarget(Orbwalking.GetRealAutoAttackRange(Player),
                     TargetSelector.DamageType.Physical));
+            }
+
+            if (Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.LaneClear)
+            {
+                if (!Menu.Config.Item("e.focusminion").IsActive()) return;
+
+                var eminion =
+                    MinionManager
+                        .GetMinions(Orbwalking.GetRealAutoAttackRange(Player))
+                        .FirstOrDefault(m => m.HasBuff("tristanaecharge") || m.HasBuff("tristanaechargesound"));
+
+                if (eminion == null) return;
+                Menu.Orbwalker.ForceTarget(eminion);
             }
         }
 
@@ -483,15 +492,33 @@ namespace ADCPackage.Plugins
             }
         }
 
+        private static List<Obj_AI_Base> GetMinionsInRange(this Vector3 point, float range)
+        {
+            return
+                MinionManager.GetMinions(E.Range)
+                    .FindAll(x => point.Distance(x.ServerPosition, true) <= range * range);
+        }
+
         public static void LaneClear()
         {
-            if (!Menu.Config.Item("e.tower").IsActive()) return;
-            if (Menu.Config.Item("e.tower.mana").GetValue<Slider>().Value > Player.ManaPercent) return;
-            var tower = (Obj_AI_Base) ObjectManager.Get<Obj_AI_Turret>().FirstOrDefault(E.CanCast);
-            if (tower == null) return;
+            if (Menu.Config.Item("e.tower").IsActive())
             {
-                E.CastOnUnit(tower);
+                if (Menu.Config.Item("e.tower.mana").GetValue<Slider>().Value < Player.ManaPercent)
+                {
+                    var tower = (Obj_AI_Base) ObjectManager.Get<Obj_AI_Turret>().FirstOrDefault(E.CanCast);
+                    if (tower != null)
+                    {
+                        E.CastOnUnit(tower);
+                    }
+                }
             }
+            if (E.IsReady() && Menu.Config.Item("e.laneclear").GetValue<bool>())
+            {
+                var minion = MinionManager.GetMinions(E.Range).Where(m => GetMinionsInRange(m.ServerPosition, 150 + m.BoundingRadius).Count >= 2).OrderByDescending(m => m.MaxHealth).FirstOrDefault();
+                if (minion != null)
+                    E.Cast(minion);
+            }
+
         }
 
         public static void Harass()
@@ -693,8 +720,10 @@ namespace ADCPackage.Plugins
                 Menu.Config.SubMenu("adcpackage.tristana")
                     .AddSubMenu(new LeagueSharp.Common.Menu("Laneclear Menu", "laneclear"));
 
+            laneclearMenu.AddItem(new MenuItem("e.laneclear", "Smart E on minion").SetValue(true));
+            laneclearMenu.AddItem(new MenuItem("e.focusminion", "Focus minion with E").SetValue(true));
             laneclearMenu.AddItem(new MenuItem("e.tower", "E Turrets").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem("e.tower.mana", "Minimum mana").SetValue(new Slider(35)));
+            laneclearMenu.AddItem(new MenuItem("e.tower.mana", "Minimum mana (%)").SetValue(new Slider(35)));
             {
                 laneclearMenu.Color = SharpDX.Color.LightGoldenrodYellow;
             }

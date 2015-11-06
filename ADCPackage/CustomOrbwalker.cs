@@ -716,7 +716,7 @@ namespace ADCPackage
 
             private bool ShouldWait()
             {
-                return
+                return Player.IsWindingUp ||
                     ObjectManager.Get<Obj_AI_Minion>()
                         .Any(
                             minion =>
