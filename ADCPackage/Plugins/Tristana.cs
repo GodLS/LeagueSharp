@@ -501,17 +501,17 @@ namespace ADCPackage.Plugins
 
         public static void LaneClear()
         {
+            if (Menu.Config.Item("e.laneclear.mana").GetValue<Slider>().Value > Player.ManaPercent) return;
+
             if (Menu.Config.Item("e.tower").IsActive())
             {
-                if (Menu.Config.Item("e.tower.mana").GetValue<Slider>().Value < Player.ManaPercent)
+                var tower = (Obj_AI_Base)ObjectManager.Get<Obj_AI_Turret>().FirstOrDefault(E.CanCast);
+                if (tower != null)
                 {
-                    var tower = (Obj_AI_Base) ObjectManager.Get<Obj_AI_Turret>().FirstOrDefault(E.CanCast);
-                    if (tower != null)
-                    {
-                        E.CastOnUnit(tower);
-                    }
+                    E.CastOnUnit(tower);
                 }
             }
+
             if (E.IsReady() && Menu.Config.Item("e.laneclear").GetValue<bool>())
             {
                 var minion = MinionManager.GetMinions(E.Range).Where(m => GetMinionsInRange(m.ServerPosition, 150 + m.BoundingRadius).Count >= 2).OrderByDescending(m => m.MaxHealth).FirstOrDefault();
@@ -723,7 +723,7 @@ namespace ADCPackage.Plugins
             laneclearMenu.AddItem(new MenuItem("e.laneclear", "Smart E on minion").SetValue(true));
             laneclearMenu.AddItem(new MenuItem("e.focusminion", "Focus minion with E").SetValue(true));
             laneclearMenu.AddItem(new MenuItem("e.tower", "E Turrets").SetValue(true));
-            laneclearMenu.AddItem(new MenuItem("e.tower.mana", "Minimum mana (%)").SetValue(new Slider(35)));
+            laneclearMenu.AddItem(new MenuItem("e.laneclear.mana", "Minimum mana (%)").SetValue(new Slider(35)));
             {
                 laneclearMenu.Color = SharpDX.Color.LightGoldenrodYellow;
             }
