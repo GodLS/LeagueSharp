@@ -20,9 +20,9 @@ namespace Varus_God
             //Q.MinHitChance = HitChance.VeryHigh;
             W = new Spell(SpellSlot.W);
             E = new Spell(SpellSlot.E, 925);
-            E.SetSkillshot(.50f, 250, 1400, false, SkillshotType.SkillshotCircle);
+            E.SetSkillshot(0.25f, 250f, 1500f, false, SkillshotType.SkillshotCircle);
             R = new Spell(SpellSlot.R, 1075);
-            R.SetSkillshot(.25f, 120, 1950, false, SkillshotType.SkillshotLine);
+            R.SetSkillshot(0.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
 
             Ignite = ObjectManager.Player.GetSpellSlot("summonerdot");
         }
