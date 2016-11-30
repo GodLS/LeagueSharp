@@ -31,7 +31,7 @@ namespace ExecutionTimer
 
         private static void OnDraw(EventArgs args)
         {
-            if (!menu.Item("enabled").IsActive())
+            if (!menu.Item("enabled").IsActive() || ObjectManager.Player.IsDead)
                 return;
 
             if (stop_watch.ElapsedMilliseconds > 14000)       
@@ -45,7 +45,7 @@ namespace ExecutionTimer
 
         private static void OnDamage(AttackableUnit sender, AttackableUnitDamageEventArgs args)
         {
-            if (!menu.Item("enabled").IsActive())
+            if (!menu.Item("enabled").IsActive() || ObjectManager.Player.IsDead)
                 return;
 
             if (!sender.IsMe)
