@@ -10,7 +10,7 @@ namespace ExecutionTimer
     {
         internal static Stopwatch stop_watch = new Stopwatch();
         internal static Obj_AI_Base last_hit_player;
-        internal static string text = "executed";
+        internal static string text = "Executed";
         internal static Menu menu = new Menu("Execution Timer", "Execution Timer", true);
 
         private static void Main(string[] args) 
