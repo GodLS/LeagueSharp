@@ -1,9 +1,12 @@
-﻿namespace ADCPackage
+﻿using LeagueSharp.Common;
+
+namespace ADCPackage
 {
     class Menu
     {
         public static LeagueSharp.Common.Menu Config = new LeagueSharp.Common.Menu("ADC Package", "adcpackage", true);
-        public static CustomOrbwalker.Orbwalker Orbwalker;
+        //public static CustomOrbwalker.Orbwalker Orbwalker;
+        public static Orbwalking.Orbwalker Orbwalker;
 
         public static void Initialize()
         {
@@ -11,7 +14,8 @@
 
             var orbwalkerMenu = new LeagueSharp.Common.Menu("Custom Orbwalker", "Custom Orbwalker");
             {
-                Orbwalker = new CustomOrbwalker.Orbwalker(orbwalkerMenu);
+                // Orbwalker = new CustomOrbwalker.Orbwalker(orbwalkerMenu);
+                Orbwalker = new Orbwalking.Orbwalker(orbwalkerMenu);
                 Config.AddSubMenu(orbwalkerMenu);
             }
 

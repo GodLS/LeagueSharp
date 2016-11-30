@@ -14,7 +14,8 @@ namespace ADCPackage
         {
             switch (Menu.Orbwalker.ActiveMode)
             {
-                case CustomOrbwalker.OrbwalkingMode.Combo:
+                //case CustomOrbwalker.OrbwalkingMode.Combo:
+                case Orbwalking.OrbwalkingMode.Combo:
                     switch (PluginLoader.Champname)
                     {
                         case "Jinx":
@@ -28,7 +29,8 @@ namespace ADCPackage
                             break;
                     }
                     break;
-                case CustomOrbwalker.OrbwalkingMode.Mixed:
+                //case CustomOrbwalker.OrbwalkingMode.Mixed:
+                case Orbwalking.OrbwalkingMode.Mixed:
                     switch (PluginLoader.Champname)
                     {
                         case "Jinx":
@@ -42,7 +44,8 @@ namespace ADCPackage
                             break;
                     }
                     break;
-                case CustomOrbwalker.OrbwalkingMode.LaneClear:
+                //case CustomOrbwalker.OrbwalkingMode.LaneClear:
+                case Orbwalking.OrbwalkingMode.LaneClear:
                     switch (PluginLoader.Champname)
                     {
                         case "Jinx":

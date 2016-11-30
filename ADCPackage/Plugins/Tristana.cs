@@ -375,7 +375,7 @@ namespace ADCPackage.Plugins
         {
             _target = args.Target.Type == GameObjectType.obj_AI_Hero ? (Obj_AI_Hero) args.Target : null;
 
-            if (Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.Combo)
+            if (Menu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo/*CustomOrbwalker.OrbwalkingMode.Combo*/)
             {
                 if (_target != null && E.IsReady() && Menu.Config.Item(_target.ChampionName + "e").GetValue<bool>() &&
                     _target.Distance(Player) >= Player.AttackRange)
@@ -394,7 +394,7 @@ namespace ADCPackage.Plugins
                     Q.Cast();
                 }
             }
-            else if (Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.Mixed)
+            else if (Menu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed/*CustomOrbwalker.OrbwalkingMode.Mixed*/)
             {
                 if (_target != null && E.IsReady() && Menu.Config.Item(_target.ChampionName + "e.harass").GetValue<bool>() &&
                     _target.Distance(Player) >= Player.AttackRange)
@@ -415,9 +415,9 @@ namespace ADCPackage.Plugins
             }
 
             if (Menu.Config.Item("e.force.target").GetValue<bool>() &&
-                Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.Combo ||
+                Menu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo/*CustomOrbwalker.OrbwalkingMode.Combo*/ ||
                 Menu.Config.Item("e.force.target.harass").GetValue<bool>() &&
-                Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.Mixed)
+                Menu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed/*CustomOrbwalker.OrbwalkingMode.Mixed*/)
             {
                 foreach (var enemy in HeroManager.Enemies.Where(enemy => enemy.HasBuff("tristanaechargesound")))
                 {
@@ -428,7 +428,7 @@ namespace ADCPackage.Plugins
                     TargetSelector.DamageType.Physical));
             }
 
-            if (Menu.Orbwalker.ActiveMode == CustomOrbwalker.OrbwalkingMode.LaneClear)
+            if (Menu.Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear/*CustomOrbwalker.OrbwalkingMode.LaneClear*/)
             {
                 if (!Menu.Config.Item("e.focusminion").IsActive()) return;
 
